@@ -11,6 +11,7 @@ import (
 type Config struct {
 	DatabaseURL string
 	AppPort     string
+	AppSecret   string
 }
 
 // Load config form env variables o .env file
@@ -24,6 +25,7 @@ func LoadConfig() (*Config, error) {
 	return &Config{
 		DatabaseURL: getEnv("DATABASE_URL", "localhost:5432"),
 		AppPort:     getEnv("APP_PORT", "8080"),
+		AppSecret:   getEnv("APP_SECRET", "sup3rs3cr3t0"),
 	}, nil
 }
 
