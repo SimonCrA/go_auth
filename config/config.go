@@ -23,7 +23,7 @@ func LoadConfig() (*Config, error) {
 	}
 
 	return &Config{
-		DatabaseURL: getEnv("DATABASE_URL", "localhost:5432"),
+		DatabaseURL: getEnv("DATABASE_URL", "localhost:5433"),
 		AppPort:     getEnv("APP_PORT", "8080"),
 		AppSecret:   getEnv("APP_SECRET", "sup3rs3cr3t0"),
 	}, nil

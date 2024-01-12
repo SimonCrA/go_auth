@@ -10,6 +10,7 @@ import (
 	jwt "github.com/golang-jwt/jwt/v5"
 	"github.com/simoncra/goauth/config"
 	"github.com/simoncra/goauth/internal/models"
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
@@ -29,6 +30,7 @@ func CreateUserHandler(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		var newUser models.User
 
+		fmt.Println(newUser)
 		if err := c.BodyParser(&newUser); err != nil {
 			return c.Status(fiber.StatusBadRequest).SendString("Invalid request body")
 		}
@@ -43,6 +45,13 @@ func CreateUserHandler(db *gorm.DB) fiber.Handler {
 		email := claims["email"].(string)
 
 		fmt.Println("Welcome 👋" + email)
+
+		hashedPsswd, err := hashPassword(newUser.Password)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).SendString("Error hashing password")
+		}
+
+		newUser.Password = hashedPsswd
 
 		if err := db.Create(&newUser).Error; err != nil {
 			return c.Status(fiber.StatusInternalServerError).SendString("Error creating a new user")
@@ -78,8 +87,6 @@ func LoginHandler(db *gorm.DB) fiber.Handler {
 			return c.Status(fiber.StatusInternalServerError).SendString("Error querying the database")
 		}
 
-		fmt.Println(user.Password)
-		fmt.Println(loginRequest.Password)
 		if !validatePassword(loginRequest.Password, user.Password) {
 			return c.Status(fiber.StatusUnauthorized).SendString("Invalid email or password.")
 		}
@@ -126,6 +133,12 @@ func validateUserInput(user *models.User) error {
 	return nil
 }
 
+func hashPassword(password string) (string, error) {
+	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
+	return string(bytes), err
+}
+
 func validatePassword(inputPassword, storedPassword string) bool {
-	return inputPassword == storedPassword
+	err := bcrypt.CompareHashAndPassword([]byte(storedPassword), []byte(inputPassword))
+	return err == nil
 }
