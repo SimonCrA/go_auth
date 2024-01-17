@@ -4,11 +4,11 @@ import "gorm.io/gorm"
 
 type User struct {
 	gorm.Model
-	Username string `grom:"uniqueIndex;not null" validate:"required,min=3,max=20"`
-	Email    string `grom:"uniqueIndex;not null" validate:"required,email"`
-	Password string `grom:"not null" validate:"required,min=6"`
-	Lastname string `grom:"size:255;not null" validate:"required,min=3"`
-	Name     string `grom:"size:255;not null" validate:"required,min=3"`
-	IsActive bool   `grom:"default:false" validate:"boolean"`
-	IsAdmin  bool   `grom:"default:false" validate:"boolean"`
+	Username string `gorm:"uniqueIndex;not null" validate:"required,min=3,max=12"`
+	Email    string `gorm:"uniqueIndex;not null" validate:"required,email"`
+	Password string `gorm:"not null" validate:"required,min=6"`
+	Lastname string `gorm:"size:255;not null" validate:"required,min=3"`
+	Name     string `gorm:"size:255;not null" validate:"required,min=3"`
+	IsActive bool   `gorm:"default:false" validate:"boolean"`
+	IsAdmin  bool   `gorm:"default:false" validate:"boolean"`
 }

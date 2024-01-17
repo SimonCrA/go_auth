@@ -23,7 +23,9 @@ func main() {
 	}
 
 	// initialize the database
-	db, err := gorm.Open(postgres.Open(config.DatabaseURL), &gorm.Config{})
+	db, err := gorm.Open(postgres.Open(config.DatabaseURL), &gorm.Config{
+		// Logger: logger.Default.LogMode(logger.Info),
+	})
 	if err != nil {
 		log.Fatalf("Error connecting to the database: %v", err)
 	}

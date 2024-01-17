@@ -25,9 +25,9 @@ func SetupRoutes(app *fiber.App, db *gorm.DB) {
 	// declare the middleware to validate the JWT token
 	jwt := middlewares.NewAuthMiddleware(config.AppSecret)
 
-	v1.Post("/users", jwt, handlers.CreateUserHandler(db))
+	v1.Post("/users", handlers.CreateUserHandler(db))
 
-	v1.Get("/users", handlers.GetUsersHandler(db))
+	v1.Get("/users", jwt, handlers.GetUsersHandler(db))
 	v1.Post("/login", handlers.LoginHandler(db))
 	// v1.Get("/users/:id")
 	// v1.Put("/users/:id")

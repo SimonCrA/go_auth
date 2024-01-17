@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"time"
@@ -18,6 +19,14 @@ import (
 func GetUsersHandler(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		var users []models.User
+
+		// Get the user from the context
+		// userJwt := c.Locals("user").(*jwt.Token)
+		// claims := userJwt.Claims.(jwt.MapClaims)
+		// email := claims["email"].(string)
+		//
+		// fmt.Println("Welcome 👋" + email)
+
 		if err := db.Find(&users).Error; err != nil {
 			return c.Status(fiber.StatusInternalServerError).SendString("Error retrieving users from the database")
 		}
@@ -30,21 +39,13 @@ func CreateUserHandler(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		var newUser models.User
 
-		fmt.Println(newUser)
 		if err := c.BodyParser(&newUser); err != nil {
 			return c.Status(fiber.StatusBadRequest).SendString("Invalid request body")
 		}
 
 		if err := validateUserInput(&newUser); err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"msg": "validation Error", "error": err.Error()})
 		}
-
-		// Get the user from the context
-		userJwt := c.Locals("user").(*jwt.Token)
-		claims := userJwt.Claims.(jwt.MapClaims)
-		email := claims["email"].(string)
-
-		fmt.Println("Welcome 👋" + email)
 
 		hashedPsswd, err := hashPassword(newUser.Password)
 		if err != nil {
@@ -118,17 +119,31 @@ func LoginHandler(db *gorm.DB) fiber.Handler {
 	}
 }
 
+type errorFormatted struct {
+	Key   string      `json:"key"`
+	Value interface{} `json:"value"`
+	Msg   string      `json:"msg"`
+}
+
 func validateUserInput(user *models.User) error {
 	validate := validator.New()
 
 	err := validate.Struct(user)
 	if err != nil {
-		var validationErrors []string
+		var validationErrors []errorFormatted
 
 		for _, err := range err.(validator.ValidationErrors) {
-			validationErrors = append(validationErrors, fmt.Sprintf("%s is %s", err.Field(), err.Tag()))
+			validationError := errorFormatted{
+				Key:   err.Field(),
+				Value: err.Value(),
+				Msg:   err.Error(),
+			}
+			validationErrors = append(validationErrors, validationError)
+			fmt.Println(validationErrors)
 		}
-		return fmt.Errorf("validation error: %s", validationErrors)
+
+		jsonValidationError, _ := json.Marshal(validationErrors)
+		return fmt.Errorf("%s", jsonValidationError)
 	}
 	return nil
 }
